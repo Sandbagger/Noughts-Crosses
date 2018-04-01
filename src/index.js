@@ -10,6 +10,23 @@ function Square(props) {
     );
   }
 
+function Settings(props){
+  return (
+    <fieldset>
+      <legend>Game settings</legend>
+      <div>
+        <input type="radio" id="PvP" name="setting" onChange={props.onClickPvp} defaultChecked></input>
+        <label>P vs P</label>
+     </div>
+     <div>
+       <input type="radio" id="PvC" name="setting" onChange={props.onClickPvc} ></input>
+       <label>P vs C</label>
+     </div>
+     <button onClick={props.onClickReset}>Reset game</button>
+</fieldset>
+    );
+}
+
 
 class Board extends React.Component {
   constructor(props){
@@ -17,6 +34,7 @@ class Board extends React.Component {
     this.state = {
       squares: Array(9).fill(null),
       xIsNext: true,
+      isPvp: true,
     }
   }
 
@@ -27,19 +45,76 @@ class Board extends React.Component {
     />;
   }
 
-  handleClick(i) {
-    const squaresCopy = this.state.squares.slice();
+  renderSettings() {
+    return <Settings 
+     onClickPvp={()=>this.handleRadio("pvp")}
+     onClickPvc={()=>this.handleRadio("pvc")}
+     onClickReset={()=>this.handleReset()}
+    
+     />;
+  }
 
-  if (calculateWinner(squaresCopy) || squaresCopy[i]) {
+  handleClick(i) {
+    console.log("click!");
+    const squaresCopy = this.state.squares.slice();
+    const stateCopy = Object.assign({}, this.state); 
+
+  if (calculateWinner(squaresCopy) || stateCopy.squares[i]) {
+      console.log("passed");
       return;
     }
 
-    squaresCopy[i] = this.state.xIsNext ? 'X' : 'O';
-    this.setState({
-      squares: squaresCopy,
-      xIsNext: !this.state.xIsNext,
-    })
+ if (this.state.xIsNext) {
 
+       stateCopy.squares[i] = this.state.xIsNext ? 'X' : 'O';
+
+      if (this.state.isPvp){
+        stateCopy.xIsNext = !this.state.xIsNext;
+      } else{
+        stateCopy.squares[calculateNextMove(stateCopy.squares)] = 'O';
+      }
+
+}else {
+    if (!this.state.isPvp) {
+       stateCopy.squares[calculateNextMove(stateCopy.squares)] = 'O';
+        stateCopy.xIsNext = !this.state.xIsNext;
+     } else {
+      stateCopy.squares[i] = this.state.xIsNext ? 'X' : 'O';
+       stateCopy.xIsNext = !this.state.xIsNext;
+     }
+   }  
+
+   this.setState(stateCopy);
+
+  }
+
+
+
+  handleRadio(radio) {
+   
+    if (radio === "pvp") {
+     
+   
+      this.setState({
+        isPvp: true,
+      })
+      console.log("pvp " + this.state.isPvp);
+    } 
+
+    if (radio ==="pvc") {
+        this.setState({
+        isPvp: false,
+      })
+      console.log("pvc " + this.state.isPvp);
+    }
+  }
+
+
+  handleReset(){
+    this.setState({
+      squares: Array(9).fill(null),
+      xIsNext: true,
+    }); 
   }
 
   render() {
@@ -74,6 +149,7 @@ class Board extends React.Component {
           {this.renderSquare(7)}
           {this.renderSquare(8)}
         </div>
+        {this.renderSettings()}
       </div>
     );
   }
@@ -87,6 +163,7 @@ class Game extends React.Component {
           <Board />
         </div>
         <div className="game-info">
+       
           <div>{/* status */}</div>
           <ol>{/* TODO */}</ol>
         </div>
@@ -121,3 +198,16 @@ function calculateWinner(squares) {
   }
   return null;
 }
+
+function calculateNextMove(squares) {
+
+let moves = squares.map(function (e, i){
+  if (e === null){
+    return i;}})
+
+.filter(x => x != null)
+
+return moves[0]
+
+}
+
