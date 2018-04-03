@@ -32,9 +32,10 @@ class Board extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      squares: Array(9).fill(null),
+      squares: [null, null, null, null, null, null, null, null, null],
       xIsNext: true,
       isPvp: true,
+      points: 0,
     }
   }
 
@@ -52,33 +53,41 @@ class Board extends React.Component {
      onClickReset={()=>this.handleReset()}
     
      />;
+    
   }
 
   handleClick(i) {
     console.log("click!");
-    const squaresCopy = this.state.squares.slice();
-    const stateCopy = Object.assign({}, this.state); 
+    const stateCopy = JSON.parse(JSON.stringify(this.state)); 
+    console.log("Thisssssssssssssssssssssssssssssssssssss " + stateCopy[0])
+   
 
-  if (calculateWinner(squaresCopy) || stateCopy.squares[i]) {
+  if (calculateWinner(stateCopy.squares) || stateCopy.squares[i]) {
       console.log("passed");
       return;
     }
 
+//Is it X's turn?
  if (this.state.xIsNext) {
-
+    //X's turn, make move
        stateCopy.squares[i] = this.state.xIsNext ? 'X' : 'O';
-
+       //
       if (this.state.isPvp){
+        //X makes move and turn moves to O
         stateCopy.xIsNext = !this.state.xIsNext;
       } else{
-        stateCopy.squares[calculateNextMove(stateCopy.squares)] = 'O';
+        //playing against computer, computer makes move
+        stateCopy.squares[maxMin(ply3)] = 'O';
       }
 
 }else {
+  // Its O's turn
     if (!this.state.isPvp) {
-       stateCopy.squares[calculateNextMove(stateCopy.squares)] = 'O';
+       //playing against computer
+       stateCopy.squares[maxMin(stateCopy)] = 'O';
         stateCopy.xIsNext = !this.state.xIsNext;
      } else {
+      //O's turn against player
       stateCopy.squares[i] = this.state.xIsNext ? 'X' : 'O';
        stateCopy.xIsNext = !this.state.xIsNext;
      }
@@ -112,7 +121,7 @@ class Board extends React.Component {
 
   handleReset(){
     this.setState({
-      squares: Array(9).fill(null),
+      squares: [null, null, null, null, null, null, null, null, null],
       xIsNext: true,
     }); 
   }
@@ -199,6 +208,112 @@ function calculateWinner(squares) {
   return null;
 }
 
+
+function maxMin(state) {
+  const stateCopy = JSON.parse(JSON.stringify(state));
+
+  console.log("stateCopy "+ stateCopy)
+
+const possibleStateArr = possibleMoves(stateCopy)
+                        .map((i) => simulateMakeMove(i, JSON.parse(JSON.stringify(stateCopy))))
+                        .map((i) => simulateFurtherMoves(i));
+
+console.log("possibleStateArr " + possibleStateArr)
+const flat = flatten(possibleStateArr);
+
+console.log("flat " + flat)
+return returnMoveLowestScore(flat);
+//const rateEachPossibleMove =
+
+}
+
+
+function possibleMoves(state) {
+
+return state.squares.map(function (e, i){
+  if (e === null){
+    return i;}})
+
+.filter(x => x != null)
+}
+
+
+function simulateMakeMove(possibleMoveIndex, state) {
+   state.MoveIndex = possibleMoveIndex;
+   state.squares[possibleMoveIndex] = state.xIsNext ? 'X' : 'O';
+  // console.log("inside makeMOve " + state.squares);
+   state.xIsNext =  !state.xIsNext;
+   return state;
+} 
+
+function simulateFurtherMoves(state) {
+
+const lines = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6],
+  ];
+  for (let i = 0; i < lines.length; i++) {
+    const [a, b, c] = lines[i];
+    if (state.squares[a] && state.squares[a] === state.squares[b] && state.squares[a] === state.squares[c]) {
+      state.points = state.xIsNext ? 10 : -10;
+      return state;
+    }
+  }
+  return [state, maxMin(state)];
+}
+
+
+function returnMoveLowestScore (arr) {
+  const movesWithScore = sortMove(arr).map(i => reduceArr(i, i[0]))
+  
+console.log("movesWithScore " + movesWithScore)
+  const result = movesWithScore[0].MoveIndex;
+  return result;
+}
+
+
+
+function sortMove(arr){
+  const sort = [];
+  [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (i){
+    if (arr.filter(j => j.MoveIndex === i).length > 0 ){
+     sort.push([].concat(arr.filter(j => j.MoveIndex === i)));
+  } else {
+    return;
+  }
+            })
+  console.log("sortMove " + sort)
+return sort;
+}
+
+
+function reduceArr (arr, obj) {
+  const score = arr.map(i => i.points)
+  .reduce((accum, j) => accum + j)
+obj.points = score;
+console.log("reduceArr " + obj)
+return obj;
+
+}
+
+
+function flatten(arr) {
+  const flat = [].concat(...arr);
+  return flat.some(Array.isArray) ? flatten(flat) : flat;
+}
+
+
+
+
+
+
+
 function calculateNextMove(squares) {
 
 let moves = squares.map(function (e, i){
@@ -211,3 +326,13 @@ return moves[0]
 
 }
 
+
+
+
+
+var ply3 = {
+  squares: [null, 'O', 'O', null, 'X', 'X', 'X', null, null],
+  xIsNext: false,
+  isPvp: false,
+  points: 0,
+                }
