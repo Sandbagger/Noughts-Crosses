@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+var _ = require('lodash');
+
 function Square(props) {
     return (
       <button className="square" onClick={props.onClick}>
@@ -77,14 +79,14 @@ class Board extends React.Component {
         stateCopy.xIsNext = !this.state.xIsNext;
       } else{
         //playing against computer, computer makes move
-        stateCopy.squares[maxMin(ply3)] = 'O';
+        stateCopy.squares[oBestMove(stateCopy)] = 'O';
       }
 
 }else {
   // Its O's turn
     if (!this.state.isPvp) {
        //playing against computer
-       stateCopy.squares[maxMin(stateCopy)] = 'O';
+       stateCopy.squares[oBestMove(stateCopy)] = 'O';
         stateCopy.xIsNext = !this.state.xIsNext;
      } else {
       //O's turn against player
@@ -209,45 +211,41 @@ function calculateWinner(squares) {
 }
 
 
-function maxMin(state) {
+function oBestMove(state){
+  const sim = miniMax(state);
+  const result = moveWithLowestScore(sim);
+  console.log(result)
+  return result.MoveIndex;
+}
+
+function miniMax(state, x) {
   const stateCopy = JSON.parse(JSON.stringify(state));
 
-  console.log("stateCopy "+ stateCopy)
+const step1 = identifyPossibleMoves(stateCopy)
+        .map((i) => simulateEachMove(i, JSON.parse(JSON.stringify(stateCopy))));
+       // console.log('simulate each move ' + step1 + ' ' + x);
+       const step2 = step1.map((j) => returnNetPointsForEachMove(j));
+      // console.log('netpoints ' + step2 + ' ' + x);
 
-const possibleStateArr = possibleMoves(stateCopy)
-                        .map((i) => simulateMakeMove(i, JSON.parse(JSON.stringify(stateCopy))))
-                        .map((i) => simulateFurtherMoves(i));
-
-console.log("possibleStateArr " + possibleStateArr)
-const flat = flatten(possibleStateArr);
-
-console.log("flat " + flat)
-return returnMoveLowestScore(flat);
-//const rateEachPossibleMove =
-
+      return step2;
 }
 
 
-function possibleMoves(state) {
 
-return state.squares.map(function (e, i){
-  if (e === null){
+function identifyPossibleMoves(state) {
+  return state.squares.map(function (e, i){
+   if (e === null){
     return i;}})
 
-.filter(x => x != null)
+  .filter(x => x != null)
 }
 
 
-function simulateMakeMove(possibleMoveIndex, state) {
+function simulateEachMove(possibleMoveIndex, state) {
    state.MoveIndex = possibleMoveIndex;
    state.squares[possibleMoveIndex] = state.xIsNext ? 'X' : 'O';
-  // console.log("inside makeMOve " + state.squares);
-   state.xIsNext =  !state.xIsNext;
-   return state;
-} 
 
-function simulateFurtherMoves(state) {
-
+  
 const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -262,77 +260,34 @@ const lines = [
     const [a, b, c] = lines[i];
     if (state.squares[a] && state.squares[a] === state.squares[b] && state.squares[a] === state.squares[c]) {
       state.points = state.xIsNext ? 10 : -10;
+         state.xIsNext =  !state.xIsNext;
       return state;
     }
   }
-  return [state, maxMin(state)];
-}
+ state.xIsNext =  !state.xIsNext;
+ state.pile = state.pile + 1;
+  return _.flattenDeep([state].concat(miniMax(state, 'recursive')));
+
+} 
 
 
-function returnMoveLowestScore (arr) {
-  const movesWithScore = sortMove(arr).map(i => reduceArr(i, i[0]))
-  
-console.log("movesWithScore " + movesWithScore)
-  const result = movesWithScore[0].MoveIndex;
-  return result;
-}
+function returnNetPointsForEachMove (i) {
 
-
-
-function sortMove(arr){
-  const sort = [];
-  [0, 1, 2, 3, 4, 5, 6, 7, 8].map(function (i){
-    if (arr.filter(j => j.MoveIndex === i).length > 0 ){
-     sort.push([].concat(arr.filter(j => j.MoveIndex === i)));
-  } else {
-    return;
+// console.log('before conditional ' + i )
+ if (Array.isArray(i)) {
+      i[0].points = i.map(j => j.points).reduce((accum, curr) => accum + curr);
+       return i[0];
+  } else{
+    return i;
   }
-            })
-  console.log("sortMove " + sort)
-return sort;
-}
-
-
-function reduceArr (arr, obj) {
-  const score = arr.map(i => i.points)
-  .reduce((accum, j) => accum + j)
-obj.points = score;
-console.log("reduceArr " + obj)
-return obj;
 
 }
 
 
-function flatten(arr) {
-  const flat = [].concat(...arr);
-  return flat.some(Array.isArray) ? flatten(flat) : flat;
+function moveWithLowestScore (state) {
+  return state.reduce((accum, curr) => accum.points > curr.points ? accum : curr, 0)
 }
 
 
 
 
-
-
-
-function calculateNextMove(squares) {
-
-let moves = squares.map(function (e, i){
-  if (e === null){
-    return i;}})
-
-.filter(x => x != null)
-
-return moves[0]
-
-}
-
-
-
-
-
-var ply3 = {
-  squares: [null, 'O', 'O', null, 'X', 'X', 'X', null, null],
-  xIsNext: false,
-  isPvp: false,
-  points: 0,
-                }
