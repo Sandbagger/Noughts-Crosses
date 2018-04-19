@@ -58,10 +58,19 @@ class Board extends React.Component {
     
   }
 
+computerMove(stateCopy) {
+    if (!stateCopy.isPvp){
+      stateCopy.squares[bestMove(bestOb(identifyPossibleMoves(stateCopy)))] = stateCopy.xIsNext ? 'X' : 'O';
+       stateCopy.xIsNext = !stateCopy.xIsNext;
+    }
+    this.setState(prevState => stateCopy);
+  };
+
+
   handleClick(i) {
     console.log("click!");
     const stateCopy = JSON.parse(JSON.stringify(this.state)); 
-    console.log("Thisssssssssssssssssssssssssssssssssssss " + stateCopy[0])
+    console.log("Thisssssssssssssssssssssssssssssssssssss " + stateCopy)
    
 
   if (calculateWinner(stateCopy.squares) || stateCopy.squares[i]) {
@@ -69,37 +78,15 @@ class Board extends React.Component {
       return;
     }
 
-//Is it X's turn?
- if (this.state.xIsNext) {
-    //X's turn, make move
-       stateCopy.squares[i] = this.state.xIsNext ? 'X' : 'O';
-       //
-      if (this.state.isPvp){
-        //X makes move and turn moves to O
-        stateCopy.xIsNext = !this.state.xIsNext;
-      } else{
-        //playing against computer, computer makes move
-        stateCopy.squares[oBestMove(stateCopy)] = 'O';
-      }
-
-}else {
-  // Its O's turn
-    if (!this.state.isPvp) {
-       //playing against computer
-       stateCopy.squares[oBestMove(stateCopy)] = 'O';
-        stateCopy.xIsNext = !this.state.xIsNext;
-     } else {
-      //O's turn against player
       stateCopy.squares[i] = this.state.xIsNext ? 'X' : 'O';
-       stateCopy.xIsNext = !this.state.xIsNext;
-     }
-   }  
+           stateCopy.xIsNext = !this.state.xIsNext;
 
-   this.setState(stateCopy);
+   
+   this.setState(prevState => stateCopy);
+   return this.computerMove(stateCopy);
+  };
 
-  }
-
-
+ 
 
   handleRadio(radio) {
    
@@ -211,41 +198,51 @@ function calculateWinner(squares) {
 }
 
 
-function oBestMove(state){
-  const sim = miniMax(state);
-  const result = moveWithLowestScore(sim);
-  console.log(result)
-  return result.MoveIndex;
+let cloneObj = state => JSON.parse(JSON.stringify(state));
+
+let togglePlayer = state => !state.xIsNext;
+
+let pilePlusOne = state => state.piles += 1; 
+
+let score = state => state.xIsNext ? 10 : -10;
+
+let reduceScore = i => i.map(j => j.points).reduce((accum, curr) => accum + curr);
+
+let returnIndexOfAvailableMove = (element, index) => {
+  if (!element) {
+    return {possibleMove: index}}
+  };
+
+
+let isPotentialMove = i => i != null;
+
+
+let cloneProperty = state =>
+  key => {
+    let obj = {};
+    obj[key] = state[key];
+    return cloneObj(obj);
+    }
+
+let updateProperty = state =>
+  key =>
+    value => {
+      state[key] = value;
+      return cloneObj(state)
+    };
+
+
+let addPropertyTo = state =>
+  property => { return {...(cloneObj(state)), ...property}};
+
+let makeMove = state => {
+  state.squares[state.possibleMove] = this.xIsNext ? 'X' : 'O';
+  return cloneObj(state);
 }
 
-function miniMax(state, x) {
-  const stateCopy = JSON.parse(JSON.stringify(state));
 
-const step1 = identifyPossibleMoves(stateCopy)
-        .map((i) => simulateEachMove(i, JSON.parse(JSON.stringify(stateCopy))));
-       // console.log('simulate each move ' + step1 + ' ' + x);
-       const step2 = step1.map((j) => returnNetPointsForEachMove(j));
-      // console.log('netpoints ' + step2 + ' ' + x);
+let isGameWon = state => {
 
-      return step2;
-}
-
-
-
-function identifyPossibleMoves(state) {
-  return state.squares.map(function (e, i){
-   if (e === null){
-    return i;}})
-
-  .filter(x => x != null)
-}
-
-
-function simulateEachMove(possibleMoveIndex, state) {
-   state.MoveIndex = possibleMoveIndex;
-   state.squares[possibleMoveIndex] = state.xIsNext ? 'X' : 'O';
-
-  
 const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -258,25 +255,25 @@ const lines = [
   ];
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
-    if (state.squares[a] && state.squares[a] === state.squares[b] && state.squares[a] === state.squares[c]) {
-      state.points = state.xIsNext ? 10 : -10;
-         state.xIsNext =  !state.xIsNext;
-      return state;
+    if (state.squares[a] && state.squares[a] === state.squares[b] && state.squares[a] === state.squares[c]) { 
+      
+      let points = updateProperty(state)('points')(score(state));
+
+
+      return  points;
+      
     }
   }
- state.xIsNext =  !state.xIsNext;
- state.pile = state.pile + 1;
-  return _.flattenDeep([state].concat(miniMax(state, 'recursive')));
+
+  return _.flatten([state].concat(identifyPossibleMoves(state)));
 
 } 
 
 
-function returnNetPointsForEachMove (i) {
-
-// console.log('before conditional ' + i )
+let returnNetPointsForEachMove = i => {
  if (Array.isArray(i)) {
-      i[0].points = i.map(j => j.points).reduce((accum, curr) => accum + curr);
-       return i[0];
+      let reducingScore = updateProperty(i[0])('points')(reduceScore(i)) 
+       return reducingScore;
   } else{
     return i;
   }
@@ -284,10 +281,38 @@ function returnNetPointsForEachMove (i) {
 }
 
 
-function moveWithLowestScore (state) {
-  return state.reduce((accum, curr) => accum.points > curr.points ? accum : curr, 0)
+
+
+let identifyPossibleMoves = state => state.squares.map(returnIndexOfAvailableMove)
+  .filter(isPotentialMove)
+  .map(moveIndex => addPropertyTo(state)(moveIndex))
+  .map(makeMove)
+  .map(i => updateProperty(i)('piles')(pilePlusOne(i)))
+  .map(i => updateProperty(i)('xIsNext')(togglePlayer(i)))
+  .map(isGameWon)
+  .map(returnNetPointsForEachMove);
+//  .reduce((accum, curr) => accum.points > curr.points ? accum : curr);
+
+
+
+function bestOb (arr) {
+
+  return arr.reduce((accum, curr) => accum.points > curr.points ? accum : curr)
 }
 
 
+function bestMove (state) {
+  return state.possibleMove;
+} 
 
 
+
+function bestOb (arr) {
+
+  return arr.reduce((accum, curr) => accum.points > curr.points ? accum : curr)
+}
+
+
+function bestMove (state) {
+  return state.possibleMove;
+} 
