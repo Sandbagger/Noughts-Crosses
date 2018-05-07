@@ -60,7 +60,7 @@ class Board extends React.Component {
 
 computerMove(stateCopy) {
     if (!stateCopy.isPvp){
-      stateCopy.squares[bestMove(bestOb(identifyPossibleMoves(stateCopy)))] = stateCopy.xIsNext ? 'X' : 'O';
+      stateCopy.squares[bestMove(minimax(stateCopy))] = stateCopy.xIsNext ? 'X' : 'O';
        stateCopy.xIsNext = !stateCopy.xIsNext;
     }
     this.setState(prevState => stateCopy);
@@ -198,52 +198,67 @@ function calculateWinner(squares) {
 }
 
 
-let cloneObj = state => JSON.parse(JSON.stringify(state));
 
-let togglePlayer = state => !state.xIsNext;
-
-let pilePlusOne = state => state.piles += 1; 
-
-let score = state => state.xIsNext ? 10 : -10;
-
-let reduceScore = i => i.map(j => j.points).reduce((accum, curr) => accum + curr);
-
-let returnIndexOfAvailableMove = (element, index) => {
-  if (!element) {
-    return {possibleMove: index}}
-  };
-
-
-let isPotentialMove = i => i != null;
-
-
-let cloneProperty = state =>
-  key => {
-    let obj = {};
-    obj[key] = state[key];
-    return cloneObj(obj);
-    }
-
-let updateProperty = state =>
-  key =>
-    value => {
-      state[key] = value;
-      return cloneObj(state)
-    };
-
-
-let addPropertyTo = state =>
-  property => { return {...(cloneObj(state)), ...property}};
-
-let makeMove = state => {
-  state.squares[state.possibleMove] = this.xIsNext ? 'X' : 'O';
-  return cloneObj(state);
+function togglePlayer(state) {
+  //console.log(state)
+  state.xIsNext = !state.xIsNext;
+  //console.log(state)
+return state;
 }
 
+function pilePlusOne(state){ 
+  state.piles += 1;
+  return state;
+  } 
 
-let isGameWon = state => {
+function cloneObj(state){
 
-const lines = [
+  return JSON.parse(JSON.stringify(state));
+}
+
+function getRidOfUndefinedValues(i){ 
+  if (i !== undefined){
+    return i;
+  }
+}
+
+function makeMove(state, index) {
+  state.move = index;
+  // console.log("make move: state");
+  // console.log(state);
+  state.squares[index] = state.xIsNext ? 'X' : 'O' ;
+  //console.log(state.squares)
+    togglePlayer(state);
+    pilePlusOne(state);
+    return state;
+ }
+
+function returnIndexOfAvailableMoves(state){
+ // debugger
+  // console.log("returnIndexOfAvailableMoves: state")
+  // console.log(state)
+  if (state.squares){
+ //   console.log("returnIndexOfAvailableMoves: state.squares")
+  // console.log(state.squares)
+    var arr = state.squares.map((element, index) => {
+    if (!element) {
+      return  index}
+    })
+
+ //    console.log("returnIndexOfAvailableMoves: arr")
+  // console.log(arr)
+       let freeMoves = arr.filter(getRidOfUndefinedValues);
+      // console.log("returnIndexOfAvailableMoves: freemoves")
+  // console.log(freeMoves)
+  return freeMoves
+  } else{
+ return [];
+}
+}
+
+function isGameWon(state) {
+
+ const lines = [
     [0, 1, 2],
     [3, 4, 5],
     [6, 7, 8],
@@ -255,64 +270,101 @@ const lines = [
   ];
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
-    if (state.squares[a] && state.squares[a] === state.squares[b] && state.squares[a] === state.squares[c]) { 
-      
-      let points = updateProperty(state)('points')(score(state));
-
-
-      return  points;
-      
+    if (state.squares[a] && state.squares[a] === state.squares[b] && state.squares[a] === state.squares[c]) {
+      return true;
     }
   }
+  return false;
+}
 
-  return _.flatten([state].concat(identifyPossibleMoves(state)));
+function score(state) {
+  if (state.squares && isGameWon(state)) {
+    if(state.xIsNext){
+      state.points = 10000 - state.piles;
+      return state;
+    }else{
+      state.points = -10000 + state.piles;
+      return state;
+    }
+    
+  } else if (state.squares && isGameWon(state) === false){
+    state.points = 0;
+    return state;
+  }
+}
 
-} 
+function noNull(state) {
+  let squares =state.squares;
+
+ let noNullValues = squares.filter(getRidOfNullValues);
 
 
-let returnNetPointsForEachMove = i => {
- if (Array.isArray(i)) {
-      let reducingScore = updateProperty(i[0])('points')(reduceScore(i)) 
-       return reducingScore;
-  } else{
-    return i;
+  if(noNullValues.length === 0){
+    return true;
+  }else{return false}
+}
+
+function getRidOfNullValues(i){
+ return i === null;
+}
+
+function returnMoveScore(index, state) {
+ 
+  var move = makeMove(state, index);
+
+   return minimax(move);
+}
+
+
+function bestMove(obj){
+  console.log('best object')
+  console.log(obj)
+  return obj.move;
+}
+
+function minimax(state){
+  //debugger
+// console.log("stateSqaurws")
+// console.log(state)
+// console.log(state.squares)
+
+
+  if (isGameWon(state) || noNull(state)){
+    return score(state); 
   }
 
+let moves = returnIndexOfAvailableMoves(state);
+
+  var scores = moves.map(index => {
+  let move = makeMove(cloneObj(state), index);
+    return minimax(move)
+  })
+// console.log("moves")
+// console.log(moves)
+
+// console.log("scores")
+// console.log(scores)
+
+
+
+let flattenScore = _.flatten(scores);
+
+let bestMove;
+
+  //debugger
+if (state.xIsNext) {
+
+  let indexMax = flattenScore.map(i => i.points).reduce((accum, x, currentIndex, arr) => x > arr[accum] ? currentIndex : accum, 0); 
+  bestMove = flattenScore[indexMax];
+  } else{
+  let indexMin = flattenScore.map(i => i.points).reduce((accum, x, currentIndex, arr) => x < arr[accum] ? currentIndex : accum, 0);
+        bestMove = flattenScore[indexMin];
+  }
+return bestMove;
 }
 
 
 
 
-let identifyPossibleMoves = state => state.squares.map(returnIndexOfAvailableMove)
-  .filter(isPotentialMove)
-  .map(moveIndex => addPropertyTo(state)(moveIndex))
-  .map(makeMove)
-  .map(i => updateProperty(i)('piles')(pilePlusOne(i)))
-  .map(i => updateProperty(i)('xIsNext')(togglePlayer(i)))
-  .map(isGameWon)
-  .map(returnNetPointsForEachMove);
-//  .reduce((accum, curr) => accum.points > curr.points ? accum : curr);
 
 
-
-function bestOb (arr) {
-
-  return arr.reduce((accum, curr) => accum.points > curr.points ? accum : curr)
-}
-
-
-function bestMove (state) {
-  return state.possibleMove;
-} 
-
-
-
-function bestOb (arr) {
-
-  return arr.reduce((accum, curr) => accum.points > curr.points ? accum : curr)
-}
-
-
-function bestMove (state) {
-  return state.possibleMove;
-} 
