@@ -130,7 +130,7 @@ computerMove(stateCopy) {
 
 
     return (
-      <div>
+      <div className='board-container'>
         <div className="status">{status}</div>
         <div className="board-row">
           {this.renderSquare(0)}
@@ -217,10 +217,9 @@ function cloneObj(state){
 }
 
 function getRidOfUndefinedValues(i){ 
-  if (i !== undefined){
-    return i;
+  return i===0? '0': i;
   }
-}
+
 
 function makeMove(state, index) {
   state.move = index;

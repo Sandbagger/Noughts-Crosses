@@ -7,6 +7,12 @@ ol, ul {
   padding-left: 30px;
 }
 
+#root{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .board-row:after {
   clear: both;
   content: "";
@@ -45,6 +51,14 @@ ol, ul {
   flex-direction: row;
   align-items: center;
   justify-content: center;
+  height: 80vh;
+}
+
+.board-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .game-info {
