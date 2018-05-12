@@ -60,7 +60,7 @@ class Board extends React.Component {
 
 computerMove(stateCopy) {
     if (!stateCopy.isPvp){
-      stateCopy.squares[bestMove(minimax(stateCopy))] = stateCopy.xIsNext ? 'X' : 'O';
+      stateCopy.squares[minimax(stateCopy)] = stateCopy.xIsNext ? 'X' : 'O';
        stateCopy.xIsNext = !stateCopy.xIsNext;
     }
     this.setState(prevState => stateCopy);
@@ -227,10 +227,18 @@ function makeMove(state, index) {
   // console.log(state);
   state.squares[index] = state.xIsNext ? 'X' : 'O' ;
   //console.log(state.squares)
-    togglePlayer(state);
+   
+    if (isGameWon(state) || noNull(state)){
+    return score(state); 
+  }else{
+
+    togglePlayer(state)
+  
     pilePlusOne(state);
     return state;
  }
+}
+ 
 
 function returnIndexOfAvailableMoves(state){
  // debugger
@@ -307,25 +315,37 @@ function getRidOfNullValues(i){
  return i === null;
 }
 
-function returnMoveScore(index, state) {
- 
-  var move = makeMove(state, index);
+function returnBestScore(state, scores){
+  var bestScore;
+  if (state.xIsNext) {
+  let indexMax = scores.map(i => i.points).reduce((accum, x, currentIndex, arr) => x > arr[accum] ? currentIndex : accum, 0); 
+  bestScore = scores[indexMax];
+  } else{
+  let indexMin = scores.map(i => i.points).reduce((accum, x, currentIndex, arr) => x < arr[accum] ? currentIndex : accum, 0);
+        bestScore = scores[indexMin];
+  }
+return bestScore;
+}
 
-   return minimax(move);
+function returnBestMove(state, scores, moves){
+ var bestMove;
+  if (state.xIsNext) {
+  let indexMax = scores.map(i => i.points).reduce((accum, x, currentIndex, arr) => x > arr[accum] ? currentIndex : accum, 0); 
+  bestMove = moves[indexMax];
+  } else{
+  let indexMin = scores.map(i => i.points).reduce((accum, x, currentIndex, arr) => x < arr[accum] ? currentIndex : accum, 0);
+        bestMove = moves[indexMin];
+  }
+return bestMove;
 }
 
 
-function bestMove(obj){
-  console.log('best object')
-  console.log(obj)
-  return obj.move;
-}
-
-function minimax(state){
+function minimax(state, amIRootNode){
   //debugger
 // console.log("stateSqaurws")
 // console.log(state)
 // console.log(state.squares)
+state.isRootNode = amIRootNode? false : true;
 
 
   if (isGameWon(state) || noNull(state)){
@@ -336,7 +356,7 @@ let moves = returnIndexOfAvailableMoves(state);
 
   var scores = moves.map(index => {
   let move = makeMove(cloneObj(state), index);
-    return minimax(move)
+    return minimax(move, 'not a root node')
   })
 // console.log("moves")
 // console.log(moves)
@@ -348,18 +368,14 @@ let moves = returnIndexOfAvailableMoves(state);
 
 let flattenScore = _.flatten(scores);
 
-let bestMove;
+let bestScore = returnBestScore(state, flattenScore);
 
-  //debugger
-if (state.xIsNext) {
+if (state.isRootNode){
+  return returnBestMove(state, flattenScore, moves);
+} else{return bestScore}
 
-  let indexMax = flattenScore.map(i => i.points).reduce((accum, x, currentIndex, arr) => x > arr[accum] ? currentIndex : accum, 0); 
-  bestMove = flattenScore[indexMax];
-  } else{
-  let indexMin = flattenScore.map(i => i.points).reduce((accum, x, currentIndex, arr) => x < arr[accum] ? currentIndex : accum, 0);
-        bestMove = flattenScore[indexMin];
-  }
-return bestMove;
+
+
 }
 
 
