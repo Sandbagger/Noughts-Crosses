@@ -37,7 +37,8 @@ class Board extends React.Component {
       squares: [null, null, null, null, null, null, null, null, null],
       xIsNext: true,
       isPvp: true,
-      points: 0,
+      points: null,
+      piles: 0,
     }
   }
 
@@ -124,7 +125,7 @@ computerMove(stateCopy) {
       status = "The winner is: " + winner;
     }
     else{
-      status = "Next player is: " + (this.state.xIsNext ? 'X': 'O')
+      this.state.isPvp ? status = "Next player is: " + (this.state.xIsNext ? 'X': 'O') : this.state.xIsNext ? status = "Your turn" : status = "Computer is having a ponder...";
     }
 
 
@@ -217,7 +218,7 @@ function cloneObj(state){
 }
 
 function getRidOfUndefinedValues(i){ 
-  return i===0? '0': i;
+ return i===0? '0': i
   }
 
 
@@ -227,8 +228,7 @@ function makeMove(state, index) {
   // console.log(state);
   state.squares[index] = state.xIsNext ? 'X' : 'O' ;
   //console.log(state.squares)
-   
-    if (isGameWon(state) || noNull(state)){
+     if (isGameWon(state) || noNull(state)){
     return score(state); 
   }else{
 
@@ -238,7 +238,6 @@ function makeMove(state, index) {
     return state;
  }
 }
- 
 
 function returnIndexOfAvailableMoves(state){
  // debugger
@@ -305,6 +304,8 @@ function noNull(state) {
 
  let noNullValues = squares.filter(getRidOfNullValues);
 
+  // console.log("noNullValies")
+  // console.log(noNullValues)
 
   if(noNullValues.length === 0){
     return true;
@@ -315,9 +316,10 @@ function getRidOfNullValues(i){
  return i === null;
 }
 
+
 function returnBestScore(state, scores){
-  var bestScore;
   if (state.xIsNext) {
+    var bestScore;
   let indexMax = scores.map(i => i.points).reduce((accum, x, currentIndex, arr) => x > arr[accum] ? currentIndex : accum, 0); 
   bestScore = scores[indexMax];
   } else{
@@ -328,8 +330,8 @@ return bestScore;
 }
 
 function returnBestMove(state, scores, moves){
- var bestMove;
   if (state.xIsNext) {
+    var bestMove;
   let indexMax = scores.map(i => i.points).reduce((accum, x, currentIndex, arr) => x > arr[accum] ? currentIndex : accum, 0); 
   bestMove = moves[indexMax];
   } else{
@@ -340,23 +342,26 @@ return bestMove;
 }
 
 
-function minimax(state, amIRootNode){
+function minimax(state, counter){
   //debugger
 // console.log("stateSqaurws")
 // console.log(state)
-// console.log(state.squares)
-state.isRootNode = amIRootNode? false : true;
+// console.log(state)
+
+//debugger
+
+state.isRootNode = counter ? false : true;
 
 
   if (isGameWon(state) || noNull(state)){
     return score(state); 
   }
 
-let moves = returnIndexOfAvailableMoves(state);
+let moves = returnIndexOfAvailableMoves(state).map(i => Number(i));
 
   var scores = moves.map(index => {
   let move = makeMove(cloneObj(state), index);
-    return minimax(move, 'not a root node')
+    return minimax(move, 'not root node')
   })
 // console.log("moves")
 // console.log(moves)
@@ -365,18 +370,22 @@ let moves = returnIndexOfAvailableMoves(state);
 // console.log(scores)
 
 
-
 let flattenScore = _.flatten(scores);
 
+// console.log("flattenscore")
+// console.log(flattenScore)
+
+
 let bestScore = returnBestScore(state, flattenScore);
+
 
 if (state.isRootNode){
   return returnBestMove(state, flattenScore, moves);
 } else{return bestScore}
 
 
-
 }
+
 
 
 
