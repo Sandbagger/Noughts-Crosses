@@ -45,7 +45,7 @@ class Board extends React.Component {
   renderSquare(i) {
     return <Square 
     value={this.state.squares[i]}
-    onClick={()=>this.handleClick(i)}
+    onClick={()=>this.handleClick(this.computerMove, i)}
     />;
   }
 
@@ -59,35 +59,55 @@ class Board extends React.Component {
     
   }
 
-computerMove(stateCopy) {
-    if (!stateCopy.isPvp){
+
+
+computerMove(stateCopy, that) {
+    console.log("statecopy")
+      console.log(stateCopy);
+   if (!stateCopy.isPvp){
       stateCopy.squares[minimax(stateCopy)] = stateCopy.xIsNext ? 'X' : 'O';
        stateCopy.xIsNext = !stateCopy.xIsNext;
-    }
-    this.setState(prevState => stateCopy);
+   console.log("statecopy2")
+      console.log(stateCopy);
+    return that.setState(prevState => stateCopy);
+
   };
+}
 
-
-  handleClick(i) {
-    console.log("click!");
+  handleClick(cb, i) {
+console.log('i')
+console.log(i)
     const stateCopy = JSON.parse(JSON.stringify(this.state)); 
-    console.log("Thisssssssssssssssssssssssssssssssssssss " + stateCopy)
-   
 
   if (calculateWinner(stateCopy.squares) || stateCopy.squares[i]) {
-      console.log("passed");
+      console.log(" turn passed");
       return;
+    }else{
+
+       stateCopy.squares[i] = stateCopy.xIsNext ? 'X' : 'O';
+           stateCopy.xIsNext = !stateCopy.xIsNext;
+
+           const that = this;
+
+          return this.setState(prevState => stateCopy, ()=>cb(stateCopy, that))
     }
-
-      stateCopy.squares[i] = this.state.xIsNext ? 'X' : 'O';
-           stateCopy.xIsNext = !this.state.xIsNext;
-
    
-   this.setState(prevState => stateCopy);
-   return this.computerMove(stateCopy);
   };
 
- 
+//  makeMove(state, move){
+//    state.squares[move] = this.state.xIsNext ? 'X' : 'O';
+//            state.xIsNext = !this.state.xIsNext;
+       
+//           return this.setState(prevState => state);
+//  }
+
+// // makeMove(state, move, cb){
+// //    state.squares[move] = this.state.xIsNext ? 'X' : 'O';
+// //            state.xIsNext = !this.state.xIsNext;
+// //           return this.setState(prevState1 => state, () => cb(stateCopy))
+// //  }
+
+
 
   handleRadio(radio) {
    
