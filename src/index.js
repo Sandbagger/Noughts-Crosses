@@ -40,6 +40,8 @@ class Board extends React.Component {
       points: null,
       piles: 0,
     }
+
+    this.renderSquare = this.renderSquare.bind(this)
   }
 
   renderSquare(i) {
@@ -60,46 +62,66 @@ class Board extends React.Component {
   }
 
 
+objectFactory(){
+  const obj = Object.assign({},{board: undefined, 
+               xGo: this.state.xIsNext,
+               playervp: this.state.isPvp,
+               piles: 0,
+               points: undefined,
+               move: undefined  
+                     })
+obj.board = this.state.squares.slice(0);
 
-computerMove(stateCopy, that) {
-    console.log("statecopy")
-      console.log(stateCopy);
-   if (!stateCopy.isPvp){
-      stateCopy.squares[minimax(stateCopy)] = stateCopy.xIsNext ? 'X' : 'O';
-       stateCopy.xIsNext = !stateCopy.xIsNext;
-   console.log("statecopy2")
-      console.log(stateCopy);
-    return that.setState(prevState => stateCopy);
+return obj
 
-  };
 }
 
-  handleClick(cb, i) {
-console.log('i')
-console.log(i)
-    const stateCopy = JSON.parse(JSON.stringify(this.state)); 
 
-  if (calculateWinner(stateCopy.squares) || stateCopy.squares[i]) {
-      console.log(" turn passed");
-      return;
-    }else{
+computerMove(stateCopy, that) {
+  console.log('component state after human player move but before computer move', that.state.squares)
+if (!stateCopy.playervp){
+      stateCopy.board[minimax(stateCopy)] = stateCopy.xGo ? 'X' : 'O';
+       stateCopy.xGo = !stateCopy.xGo;
+    
 
-       stateCopy.squares[i] = stateCopy.xIsNext ? 'X' : 'O';
-           stateCopy.xIsNext = !stateCopy.xIsNext;
+        const update = {squares:stateCopy.board, 
+                                        xIsNext:stateCopy.xGo}
 
-           const that = this;
-
-          return this.setState(prevState => stateCopy, ()=>cb(stateCopy, that))
+        that.setState(prevState => update);
+        console.log('state after computermove', that.state.squares)
     }
-   
+    
   };
 
-//  makeMove(state, move){
-//    state.squares[move] = this.state.xIsNext ? 'X' : 'O';
-//            state.xIsNext = !this.state.xIsNext;
+
+  handleClick(cb, i) {
+console.log('this state before human player moves', this.state.squares)
+    const stateCopy = this.objectFactory();
+
+     
+
+    if (calculateWinner(stateCopy.board) || stateCopy.board[i]) {
+      console.log("passed");
+      return;
+    }
+
+      stateCopy.board[i] = stateCopy.xGo ? 'X' : 'O';
+           stateCopy.xGo = !stateCopy.xGo;
+           // console.log('player stateCopy2', stateCopy.board)
+           const that = this;
+
+           const update = {squares:stateCopy.board, 
+                                        xIsNext:stateCopy.xGo}
+   
+   return this.setState((prevState => update), () => cb(stateCopy, that));
+  };
+
+ makeMove(state, move){
+   state.squares[move] = this.state.xIsNext ? 'X' : 'O';
+           state.xIsNext = !this.state.xIsNext;
        
-//           return this.setState(prevState => state);
-//  }
+          return this.setState(prevState => state);
+ }
 
 // // makeMove(state, move, cb){
 // //    state.squares[move] = this.state.xIsNext ? 'X' : 'O';
@@ -174,27 +196,12 @@ console.log(i)
   }
 }
 
-class Game extends React.Component {
-  render() {
-    return (
-      <div className="game">
-        <div className="game-board">
-          <Board />
-        </div>
-        <div className="game-info">
-       
-          <div>{/* status */}</div>
-          <ol>{/* TODO */}</ol>
-        </div>
-      </div>
-    );
-  }
-}
+
 
 // ========================================
 
 ReactDOM.render(
-  <Game />,
+  <Board />,
   document.getElementById('root')
 );
 
@@ -222,7 +229,7 @@ function calculateWinner(squares) {
 
 function togglePlayer(state) {
   //console.log(state)
-  state.xIsNext = !state.xIsNext;
+  state.xGo = !state.xGo;
   //console.log(state)
 return state;
 }
@@ -246,9 +253,9 @@ function makeMove(state, index) {
   state.move = index;
   // console.log("make move: state");
   // console.log(state);
-  state.squares[index] = state.xIsNext ? 'X' : 'O' ;
-  //console.log(state.squares)
-     if (isGameWon(state) || noNull(state)){
+  state.board[index] = state.xGo ? 'X' : 'O' ;
+  //console.log(state.board)
+     if (isGameWon(state) || draw(state)){
     return score(state); 
   }else{
 
@@ -263,10 +270,10 @@ function returnIndexOfAvailableMoves(state){
  // debugger
   // console.log("returnIndexOfAvailableMoves: state")
   // console.log(state)
-  if (state.squares){
- //   console.log("returnIndexOfAvailableMoves: state.squares")
-  // console.log(state.squares)
-    var arr = state.squares.map((element, index) => {
+  if (state.board){
+ //   console.log("returnIndexOfAvailableMoves: state.board")
+  // console.log(state.board)
+    var arr = state.board.map((element, index) => {
     if (!element) {
       return  index}
     })
@@ -296,7 +303,7 @@ function isGameWon(state) {
   ];
   for (let i = 0; i < lines.length; i++) {
     const [a, b, c] = lines[i];
-    if (state.squares[a] && state.squares[a] === state.squares[b] && state.squares[a] === state.squares[c]) {
+    if (state.board[a] && state.board[a] === state.board[b] && state.board[a] === state.board[c]) {
       return true;
     }
   }
@@ -304,8 +311,8 @@ function isGameWon(state) {
 }
 
 function score(state) {
-  if (state.squares && isGameWon(state)) {
-    if(state.xIsNext){
+  if (state.board && isGameWon(state)) {
+    if(state.xGo){
       state.points = 10000 - state.piles;
       return state;
     }else{
@@ -313,16 +320,16 @@ function score(state) {
       return state;
     }
     
-  } else if (state.squares && isGameWon(state) === false){
+  } else if (state.board && isGameWon(state) === false){
     state.points = 0;
     return state;
   }
 }
 
-function noNull(state) {
-  let squares =state.squares;
+function draw(state) {
+  let board =state.board;
 
- let noNullValues = squares.filter(getRidOfNullValues);
+ let noNullValues = board.filter(getRidOfNullValues);
 
   // console.log("noNullValies")
   // console.log(noNullValues)
@@ -338,7 +345,7 @@ function getRidOfNullValues(i){
 
 
 function returnBestScore(state, scores){
-  if (state.xIsNext) {
+  if (state.xGo) {
     var bestScore;
   let indexMax = scores.map(i => i.points).reduce((accum, x, currentIndex, arr) => x > arr[accum] ? currentIndex : accum, 0); 
   bestScore = scores[indexMax];
@@ -350,7 +357,7 @@ return bestScore;
 }
 
 function returnBestMove(state, scores, moves){
-  if (state.xIsNext) {
+  if (state.xGo) {
     var bestMove;
   let indexMax = scores.map(i => i.points).reduce((accum, x, currentIndex, arr) => x > arr[accum] ? currentIndex : accum, 0); 
   bestMove = moves[indexMax];
@@ -363,17 +370,12 @@ return bestMove;
 
 
 function minimax(state, counter){
-  //debugger
-// console.log("stateSqaurws")
-// console.log(state)
-// console.log(state)
 
-//debugger
 
 state.isRootNode = counter ? false : true;
 
 
-  if (isGameWon(state) || noNull(state)){
+  if (isGameWon(state) || draw(state)){
     return score(state); 
   }
 
@@ -383,11 +385,6 @@ let moves = returnIndexOfAvailableMoves(state).map(i => Number(i));
   let move = makeMove(cloneObj(state), index);
     return minimax(move, 'not root node')
   })
-// console.log("moves")
-// console.log(moves)
-
-// console.log("scores")
-// console.log(scores)
 
 
 let flattenScore = _.flatten(scores);
@@ -405,6 +402,7 @@ if (state.isRootNode){
 
 
 }
+
 
 
 
