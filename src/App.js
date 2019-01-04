@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 import Board from './components/Board.js';
+import Paper from '@material-ui/core/Paper';
 
 class App extends Component {
     render() {
       return (
         <div className="game">
+        <Paper>
         <div className="game-board">
           <Board />
         </div>
@@ -13,6 +15,7 @@ class App extends Component {
           <div>{/* status */}</div>
           <ol>{/* TODO */}</ol>
         </div>
+        </Paper>
       </div>
       );
     }
