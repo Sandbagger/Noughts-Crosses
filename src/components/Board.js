@@ -18,7 +18,7 @@ class Board extends React.Component {
     renderSquare(i) {
       return <Square 
       value={this.state.squares[i]}
-      onClick={()=>this.handleClick(this.computerMove, i)}
+      onClick={()=>this.registerPlayerMove(i, this.computerMove)}
       />;
     }
   
@@ -34,7 +34,7 @@ class Board extends React.Component {
   
   
   
-  computerMove(stateCopy, that) {
+  computerMove(stateCopy) {
   
      if (!stateCopy.isPvp){
         stateCopy.squares[minimax(stateCopy)] = stateCopy.xIsNext ? 'X' : 'O';
@@ -45,7 +45,7 @@ class Board extends React.Component {
     };
   }
   
-    handleClick(cb, i) {
+    registerPlayerMove(startComputerMove, i) {
     if (calculateWinner(this.state.squares) || this.state.squares[i]) {
         return;
       }else{
@@ -53,10 +53,8 @@ class Board extends React.Component {
         moveUpdate[i] = this.state.xIsNext ? 'X' : 'O';
 
         const stateUpdate = {...this.state, squares: moveUpdate, xIsNext: !this.state.xIsNext}
-             
-             const that = this;
   
-            return this.setState(prevState => stateUpdate, ()=>cb(stateUpdate, that))
+            return this.setState(prevState => stateUpdate, ()=>startComputerMove(stateUpdate))
       }
      
     };
