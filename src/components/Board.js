@@ -35,52 +35,31 @@ class Board extends React.Component {
   
   
   computerMove(stateCopy, that) {
-      console.log("statecopy")
-        console.log(stateCopy);
+  
      if (!stateCopy.isPvp){
         stateCopy.squares[minimax(stateCopy)] = stateCopy.xIsNext ? 'X' : 'O';
          stateCopy.xIsNext = !stateCopy.xIsNext;
-     console.log("statecopy2")
-        console.log(stateCopy);
+  
       return that.setState(prevState => stateCopy);
   
     };
   }
   
     handleClick(cb, i) {
-  console.log('i')
-  console.log(i)
-      const stateCopy = JSON.parse(JSON.stringify(this.state)); 
-  
-    if (calculateWinner(stateCopy.squares) || stateCopy.squares[i]) {
-        console.log(" turn passed");
+    if (calculateWinner(this.state.squares) || this.state.squares[i]) {
         return;
       }else{
-  
-         stateCopy.squares[i] = stateCopy.xIsNext ? 'X' : 'O';
-             stateCopy.xIsNext = !stateCopy.xIsNext;
-  
+        const moveUpdate = [...this.state.squares]
+        moveUpdate[i] = this.state.xIsNext ? 'X' : 'O';
+
+        const stateUpdate = {...this.state, squares: moveUpdate, xIsNext: !this.state.xIsNext}
+             
              const that = this;
   
-            return this.setState(prevState => stateCopy, ()=>cb(stateCopy, that))
+            return this.setState(prevState => stateUpdate, ()=>cb(stateUpdate, that))
       }
      
     };
-  
-  //  makeMove(state, move){
-  //    state.squares[move] = this.state.xIsNext ? 'X' : 'O';
-  //            state.xIsNext = !this.state.xIsNext;
-         
-  //           return this.setState(prevState => state);
-  //  }
-  
-  // // makeMove(state, move, cb){
-  // //    state.squares[move] = this.state.xIsNext ? 'X' : 'O';
-  // //            state.xIsNext = !this.state.xIsNext;
-  // //           return this.setState(prevState1 => state, () => cb(stateCopy))
-  // //  }
-  
-  
   
     handleRadio(radio) {
      
