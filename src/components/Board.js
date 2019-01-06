@@ -1,7 +1,8 @@
 import React, {Component} from 'react';
 import Square from '../components/Square';
 import Settings from './Settings';
-import {minimax, calculateWinner} from '../utils/miniMax';
+import minimax from '../utils/miniMax';
+import {calculateWinner} from '../utils/utilityFunctions';
 
 class Board extends React.Component {
     constructor(props){
@@ -26,12 +27,9 @@ class Board extends React.Component {
        onClickPvp={()=>this.handleRadio("pvp")}
        onClickPvc={()=>this.handleRadio("pvc")}
        onClickReset={()=>this.handleReset()}
-      
        />;
       
     }
-  
-  
   
   computerMove() {
   
@@ -96,7 +94,7 @@ class Board extends React.Component {
         status = "The winner is: " + winner;
       }
       else{
-        this.state.isPvp ? status = "Next player is: " + (this.state.xIsNext ? 'X': 'O') : this.state.xIsNext ? status = "Your turn" : status = "Computer is having a ponder...";
+        this.state.xIsNext ? status = "Your turn" : status = "Computer is having a ponder...";
       }
   
   
