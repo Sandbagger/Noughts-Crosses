@@ -35,8 +35,9 @@ function calculateWinner(squares) {
     } 
   
   function cloneObj(state){
-  
-    return JSON.parse(JSON.stringify(state));
+    let squaresCopy = state.squares.slice();
+    let copy = {...state, squares: squaresCopy};
+    return copy;
   }
   
   function getRidOfUndefinedValues(i){ 
@@ -45,10 +46,9 @@ function calculateWinner(squares) {
   
   function makeMove(state, index) {
     state.move = index;
-    // console.log("make move: state");
-    // console.log(state);
+   
     state.squares[index] = state.xIsNext ? 'X' : 'O' ;
-    //console.log(state.squares)
+   
        if (isGameWon(state) || noNull(state)){
       return score(state); 
     }else{
@@ -61,22 +61,16 @@ function calculateWinner(squares) {
   }
   
   function returnIndexOfAvailableMoves(state){
-   // debugger
-    // console.log("returnIndexOfAvailableMoves: state")
-    // console.log(state)
+ 
     if (state.squares){
-   //   console.log("returnIndexOfAvailableMoves: state.squares")
-    // console.log(state.squares)
+   
       var arr = state.squares.map((element, index) => {
       if (!element) {
         return  index}
       })
   
-   //    console.log("returnIndexOfAvailableMoves: arr")
-    // console.log(arr)
          let freeMoves = arr.filter(getRidOfUndefinedValues);
-        // console.log("returnIndexOfAvailableMoves: freemoves")
-    // console.log(freeMoves)
+       
     return freeMoves
     } else{
    return [];
@@ -124,9 +118,6 @@ function calculateWinner(squares) {
     let squares =state.squares;
   
    let noNullValues = squares.filter(getRidOfNullValues);
-  
-    // console.log("noNullValies")
-    // console.log(noNullValues)
   
     if(noNullValues.length === 0){
       return true;
@@ -186,7 +177,6 @@ function calculateWinner(squares) {
   if (state.tick === 0){
     return returnBestMove(state, flattenScore, moves);
   } else{return bestScore}
-  
   
   };
 
