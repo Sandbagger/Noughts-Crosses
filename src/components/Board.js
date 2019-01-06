@@ -6,6 +6,7 @@ import {minimax, calculateWinner} from '../utils/miniMax';
 class Board extends React.Component {
     constructor(props){
       super(props);
+      this.computerMove = this.computerMove.bind(this)
       this.state = {
         squares: [null, null, null, null, null, null, null, null, null],
         xIsNext: true,
@@ -34,18 +35,20 @@ class Board extends React.Component {
   
   
   
-  computerMove(stateCopy) {
+  computerMove() {
   
-     if (!stateCopy.isPvp){
-        stateCopy.squares[minimax(stateCopy)] = stateCopy.xIsNext ? 'X' : 'O';
-         stateCopy.xIsNext = !stateCopy.xIsNext;
+     if (!this.state.isPvp){
+        let stateUpdate = {...this.state};
+
+        stateUpdate.squares[minimax(stateUpdate)] = stateUpdate.xIsNext ? 'X' : 'O';
+         stateUpdate.xIsNext = !stateUpdate.xIsNext;
   
-      return that.setState(prevState => stateCopy);
+      return this.setState(prevState => stateUpdate);
   
     };
   }
   
-    registerPlayerMove(startComputerMove, i) {
+    registerPlayerMove(i, startComputerMove) {
     if (calculateWinner(this.state.squares) || this.state.squares[i]) {
         return;
       }else{
@@ -54,7 +57,7 @@ class Board extends React.Component {
 
         const stateUpdate = {...this.state, squares: moveUpdate, xIsNext: !this.state.xIsNext}
   
-            return this.setState(prevState => stateUpdate, ()=>startComputerMove(stateUpdate))
+            return this.setState(prevState => stateUpdate, ()=>startComputerMove())
       }
      
     };
