@@ -162,11 +162,9 @@ function calculateWinner(squares) {
   }
   
   
-  function minimax(state, counter){
+  function minimax(state){
     state.tick = state.tick || 0;
     state.points = state.points || 0;
-  state.isRootNode = counter ? false : true;
-  
   
     if (isGameWon(state) || noNull(state)){
       return score(state); 
@@ -178,23 +176,14 @@ function calculateWinner(squares) {
     let move = makeMove(cloneObj(state), index);
       return minimax(move, 'not root node')
     })
-  // console.log("moves")
-  // console.log(moves)
-  
-  // console.log("scores")
-  // console.log(scores)
-  
-  
+
   let flattenScore = _.flatten(scores);
-  
-  // console.log("flattenscore")
-  // console.log(flattenScore)
   
   
   let bestScore = returnBestScore(state, flattenScore);
   
   
-  if (state.isRootNode){
+  if (state.tick === 0){
     return returnBestMove(state, flattenScore, moves);
   } else{return bestScore}
   
