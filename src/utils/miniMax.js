@@ -29,8 +29,8 @@ function calculateWinner(squares) {
   return state;
   }
   
-  function pilePlusOne(state){ 
-    state.piles += 1;
+  function tickIncrement(state){ 
+    state.tick = state.tick += 1 || 1;
     return state;
     } 
   
@@ -55,7 +55,7 @@ function calculateWinner(squares) {
   
       togglePlayer(state)
     
-      pilePlusOne(state);
+      tickIncrement(state);
       return state;
    }
   }
@@ -107,10 +107,10 @@ function calculateWinner(squares) {
   function score(state) {
     if (state.squares && isGameWon(state)) {
       if(state.xIsNext){
-        state.points = 10000 - state.piles;
+        state.points = 10000 - state.tick;
         return state;
       }else{
-        state.points = -10000 + state.piles;
+        state.points = -10000 + state.tick;
         return state;
       }
       
@@ -163,13 +163,8 @@ function calculateWinner(squares) {
   
   
   function minimax(state, counter){
-    //debugger
-  // console.log("stateSqaurws")
-  // console.log(state)
-  // console.log(state)
-  
-  //debugger
-  
+    state.tick = state.tick || 0;
+    state.points = state.points || 0;
   state.isRootNode = counter ? false : true;
   
   

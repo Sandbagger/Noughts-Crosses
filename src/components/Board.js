@@ -11,8 +11,6 @@ class Board extends React.Component {
         squares: [null, null, null, null, null, null, null, null, null],
         xIsNext: true,
         isPvp: true,
-        points: null,
-        piles: 0,
       }
     }
   
