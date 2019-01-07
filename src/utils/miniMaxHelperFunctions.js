@@ -1,7 +1,6 @@
 import {
     togglePlayer,
     tickIncrement,
-    getRidOfUndefinedValues,
     getRidOfNullValues
 } from "./utilityFunctions";
 
@@ -36,7 +35,7 @@ function cloneObj(state){
         return  index}
       })
   
-         let freeMoves = arr.filter(getRidOfUndefinedValues);
+         let freeMoves = arr.filter(i => i===0 ? '0': i);
        
     return freeMoves
     } else{
@@ -82,7 +81,7 @@ function cloneObj(state){
   }
 
   function noNull(state) {
-    let squares =state.squares;
+    let squares = state.squares;
   
    let noNullValues = squares.filter(getRidOfNullValues);
   

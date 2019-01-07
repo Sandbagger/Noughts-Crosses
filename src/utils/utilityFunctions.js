@@ -28,11 +28,7 @@ function calculateWinner(squares) {
     state.tick = state.tick += 1 || 1;
     return state;
     } 
-  
-  function getRidOfUndefinedValues(i){ 
-   return i===0? '0': i
-    }
-  
+
   function getRidOfNullValues(i){
    return i === null;
   }
@@ -42,6 +38,5 @@ function calculateWinner(squares) {
   export {calculateWinner,
             togglePlayer,
             tickIncrement,
-            getRidOfUndefinedValues,
            getRidOfNullValues,
             }
