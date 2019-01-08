@@ -9,8 +9,6 @@ import {
   returnIndexOfAvailableMoves } 
   from "../utils/miniMaxHelperFunctions";
 
-var _ = require('lodash');
-
 function minimax(state){
     state.tick = state.tick || 0;
     state.points = state.points || 0;
@@ -26,7 +24,7 @@ function minimax(state){
       return minimax(move)
     })
 
-  let flattenScore = _.flatten(scores);
+  let flattenScore = [].concat(...scores);
   
   
   let bestScore = returnBestScore(state, flattenScore);
