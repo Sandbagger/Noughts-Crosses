@@ -27,20 +27,13 @@ function cloneObj(state){
   }
   
   function returnIndexOfAvailableMoves(state){
- 
     if (state.squares){
-   
-      var arr = state.squares.map((element, index) => {
-      if (!element) {
-        return  index}
-      })
-  
-         let freeMoves = arr.filter(i => i===0 ? '0': i);
-       
-    return freeMoves
-    } else{
-   return [];
-  }
+      return state.squares.map((element, index) => {
+      if (element===null) {
+        return index
+      }
+    }).filter(i => i===0 ? '0': i);
+    }
   }
 
   function isGameWon(state) {
