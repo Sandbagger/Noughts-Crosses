@@ -1,6 +1,6 @@
 import {returnIndexOfAvailableMoves} from './miniMaxHelperFunctions';
 
-describe('test', () => {
+describe('tests for returnIndexOfAvailableMoves', () => {
     
     var state1 = {
         squares: [null, null, null, null, null, null, null, null, null],
@@ -26,6 +26,8 @@ describe('test', () => {
         points: 0
     };
 
+    var causeError = 'a';
+
 
 
 it('if null replace with array index', ()=> {
@@ -36,8 +38,12 @@ it('there should be no 0 in array', ()=> {
     expect(returnIndexOfAvailableMoves(state2)).toEqual([1, 2, 3, 4, 5, 6, 7, 8])
 })
 
-it('it should return an empty array', ()=> {
-    expect(returnIndexOfAvailableMoves(state3)).toEqual([]);
+it('should return an empty array', ()=> {
+    expect(returnIndexOfAvailableMoves(state3)).toEqual([])
+})
+
+it('should return an empty array', ()=> {
+    expect(()=>returnIndexOfAvailableMoves(causeError)).toThrow()
 })
 
 })

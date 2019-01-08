@@ -27,12 +27,19 @@ function cloneObj(state){
   }
   
   function returnIndexOfAvailableMoves(state){
-    if (state.squares){
+    try{
+      if (state.squares){
       return state.squares.map((element, index) => {
       if (element===null) {
         return index
       }
     }).filter(i => i===0 ? '0': i);
+    } else{
+      throw Error('Function argument is not a state object') 
+    } 
+  } catch(e){
+    console.log(e);
+      throw e;
     }
   }
 
