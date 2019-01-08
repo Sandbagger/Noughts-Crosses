@@ -4,18 +4,18 @@ import {
     getRidOfNullValues
 } from "./utilityFunctions";
 
-function cloneObj(state){
+function clone(state){
     let squaresCopy = state.squares.slice();
     let copy = {...state, squares: squaresCopy};
     return copy;
   }
 
-  function makeMove(state, index) {
+  function simulateMove(state, index) {
     state.move = index;
    
-    state.squares[index] = state.xIsNext ? 'X' : 'O' ;
+    state.squares[index] = state.xIsNext ? 'X' : 'O';
    
-       if (isGameWon(state) || noNull(state)){
+       if (isGameWon(state) || isDraw(state)){
       return score(state); 
     }else{
   
@@ -80,12 +80,12 @@ function cloneObj(state){
     }
   }
 
-  function noNull(state) {
+  function isDraw(state) {
     let squares = state.squares;
   
-   let noNullValues = squares.filter(getRidOfNullValues);
+   let isDrawValues = squares.filter(getRidOfNullValues);
   
-    if(noNullValues.length === 0){
+    if(isDrawValues.length === 0){
       return true;
     }else{return false}
   }
@@ -115,11 +115,11 @@ function cloneObj(state){
   }
 
  export {
-    cloneObj,
-    makeMove,
+    clone,
+    simulateMove,
     returnBestMove, 
     returnBestScore, 
-    noNull,
+    isDraw,
     score,
     isGameWon,
     returnIndexOfAvailableMoves }

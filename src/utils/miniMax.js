@@ -1,9 +1,9 @@
 import {
-  cloneObj,
-  makeMove,
+  clone,
+  simulateMove,
   returnBestMove, 
   returnBestScore, 
-  noNull,
+  isDraw,
   score,
   isGameWon,
   returnIndexOfAvailableMoves } 
@@ -15,15 +15,15 @@ function minimax(state){
     state.tick = state.tick || 0;
     state.points = state.points || 0;
   
-    if (isGameWon(state) || noNull(state)){
+    if (isGameWon(state) || isDraw(state)){
       return score(state); 
     }
   
-  let moves = returnIndexOfAvailableMoves(state).map(i => Number(i));
+  let moves = returnIndexOfAvailableMoves(state);
   
     var scores = moves.map(index => {
-    let move = makeMove(cloneObj(state), index);
-      return minimax(move, 'not root node')
+    let move = simulateMove(clone(state), index);
+      return minimax(move)
     })
 
   let flattenScore = _.flatten(scores);
