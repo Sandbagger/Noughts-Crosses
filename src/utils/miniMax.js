@@ -13,7 +13,7 @@ function minimax(state){
     state.tick = state.tick || 0;
     state.points = state.points || 0;
   
-    if (isGameWon(state) || isDraw(state)){
+    if (isGameWon(state) || isDraw(state)){ 
       return score(state); 
     }
   
@@ -25,7 +25,6 @@ function minimax(state){
     })
 
   let flattenScore = [].concat(...scores);
-  
   
   let bestScore = returnBestScore(state, flattenScore);
   
